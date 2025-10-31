@@ -1,0 +1,701 @@
+{
+  "name": "Yt To Quiz",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "300bfbe7-8d13-41ba-8828-17bba1d0eabe",
+              "name": "answerAIGenerated",
+              "type": "string",
+              "value": "={{ $json.candidates[0].content.parts[0].text }}"
+            },
+            {
+              "id": "a54eeb5d-e4de-4fd9-a15c-be51cc414c46",
+              "name": "promptTokenCount",
+              "type": "string",
+              "value": "={{ $json.usageMetadata?.promptTokenCount ? $json.usageMetadata.promptTokenCount : ($json.error ? $json.error : \"No content or error found\") }}"
+            },
+            {
+              "id": "dd590788-069e-48d9-adb2-6a5d10f8af2f",
+              "name": "candidatesTokenCount",
+              "type": "string",
+              "value": "={{ $json.usageMetadata?.candidatesTokenCount ? $json.usageMetadata.candidatesTokenCount : ($json.error ? $json.error : \"No content or error found\") }}"
+            },
+            {
+              "id": "23766495-25df-4d3d-bc62-9e79a860ee19",
+              "name": "totalTokenCount",
+              "type": "string",
+              "value": "={{ $json.usageMetadata?.totalTokenCount ? $json.usageMetadata.totalTokenCount : ($json.error ? $json.error : \"No content or error found\") }}"
+            },
+            {
+              "id": "cfad5ba2-a2c5-48ff-b64b-9131a51fd23c",
+              "name": "modelVersionUsed",
+              "type": "string",
+              "value": "={{ $json.modelVersion ? $json.modelVersion : ($json.error ? $json.error : \"No content or error found\") }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "except",
+        "excludeFields": "candidates, usageMetadata",
+        "options": {}
+      },
+      "id": "aaee9074-8e5c-4df1-acfa-374d37d255e1",
+      "name": "Set Fields: Define Outcome",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1760,
+        208
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "148e9a72-f826-468c-86a3-471873717ed4",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.candidates[0].content.parts[0].text }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1d0cea9a-6c6d-4518-9119-b3f8463d2b0a",
+      "name": "If: Was an error detected?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1984,
+        336
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "87834829-1f45-4b73-9ca7-3bc6ad57b9fa",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        -1536,
+        432
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "WH4R94CPdh9bt2Nv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n \t\"Questions\": [{\"question\": \"In unsupervised learning, are we given data associated with output labels?\", \t\t\"options\": [\"Yes\",\"No\",\"Sometimes\",\"Depends on the situation\"], \"answer\": \"No\"},\n{\"question\": \"In unsupervised learning, are we given data associated with output labels?\", \t\t\"options\": [\"Yes\",\"No\",\"Sometimes\",\"Depends on the situation\"], \"answer\": \"No\"}]\n}"
+      },
+      "id": "e36c1035-6f59-4919-8598-66a10abe3c37",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        -1408,
+        432
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "31dfe6b5-c3f8-4c45-a372-a5564255d4f6",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        -736,
+        -80
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "148e9a72-f826-468c-86a3-471873717ed4",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              },
+              "leftValue": "={{ $json['Number of Questions'] }}",
+              "rightValue": 91
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "de12eb37-2ab8-4a34-aca6-d23ad9e80e77",
+      "name": "filter",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -4112,
+        480
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "formTitle": "Quize Form YT Videos",
+        "formDescription": "Wait a few minutes after submitting the form to generate quiz.\nLIMITATIONS: Number of questions up to 90, Video size up to 50 minutes.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Form Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Youtube URL",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Number of Questions",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Generate Quizes"
+        }
+      },
+      "id": "0c6ee675-e983-4008-84a7-593f71c39b6a",
+      "name": "Input YouTube URL",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -4336,
+        480
+      ],
+      "webhookId": "e2885d2e-0bd8-4891-916c-0c679782869d",
+      "typeVersion": 2.2,
+      "notes": "https://youtu.be/cZQPDLgPtNg?si=Ze6zOu5oTpF8QMq0"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8be68e95-53df-492f-a88a-14c06f51f531",
+              "name": "=prompt",
+              "type": "string",
+              "value": "=Generate {{ $json['Number of Questions'] }} English MCQ (Multiple Choice Question) from the video with answer, every question will have 3 options and return those question as json format."
+            },
+            {
+              "id": "b445c2da-934f-4a78-a57b-f383d8950f8a",
+              "name": "model",
+              "type": "string",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "fcc60853-d30b-4739-afb6-4c42a78b72a1",
+      "name": "Set Prompt and Model",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3712,
+        352
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-goog-api-key",
+              "value": "AIzaSyDRfBMY3GxTzkUxSAMNbwdYG_wVNBM4Muw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"{{ $json.transcriptText }}\\n\\nGenerate {{ $json['Number of Questions'] }} English MCQ with 3 options each, return result in JSON.\"\n        }\n      ]\n    }\n  ],\n  \"model\": \"gemini-2.5-flash\"\n}\n",
+        "options": {
+          "timeout": 100000000
+        }
+      },
+      "id": "5a9e3c40-74ea-431e-999d-3edbbe0960bb",
+      "name": "HTTP Request to Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -2432,
+        368
+      ],
+      "typeVersion": 4.2,
+      "alwaysOutputData": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=extract the json from this text: \t{{ $json.answerAIGenerated }}",
+        "hasOutputParser": true
+      },
+      "id": "9794ac26-1d45-4b32-a138-8b56ef88db44",
+      "name": "Extract JSON",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        -1536,
+        208
+      ],
+      "typeVersion": 1.5,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://forms.googleapis.com/v1/forms",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \t\"info\": {\n \t\t\"title\": \"{{ $node[\"Input YouTube URL\"].json['Form Name'] }}\",\n \t\t\"documentTitle\": \"{{ $node[\"Input YouTube URL\"].json['Form Name'] }}-{{ $now }}\"\n \t}\n}",
+        "options": {}
+      },
+      "id": "191cd20e-f570-4294-9952-7e45dce1fe64",
+      "name": "Create a Google Form",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1184,
+        80
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "lKBe0QJXvmoEfXFi",
+          "name": "Google account 2"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const questionRequests = [];\n\nconst questions = $('Extract JSON').first().json.output.Questions;\n\nfor (const item of questions) {\n    const options = [];\n    if (item.options && item.options[0]) options.push({ value: item.options[0] });\n    if (item.options && item.options[1]) options.push({ value: item.options[1] });\n    if (item.options && item.options[2]) options.push({ value: item.options[2] });\n\n    const correctAnswers = [{ value: item.answer }];\n\n    questionRequests.push({\n        data: [\n            {\n                updateSettings: {\n                    settings: {\n                        quizSettings: {\n                            isQuiz: true\n                        }\n                    },\n                    updateMask: \"quizSettings.isQuiz\"\n                }\n            },\n            {\n                createItem: {\n                    item: {\n                        title: item.question,\n                        questionItem: {\n                            question: {\n                                choiceQuestion: {\n                                    options: options,\n                                    shuffle: true,\n                                    type: \"RADIO\"\n                                },\n                                grading: {\n                                    correctAnswers: {\n                                        answers: correctAnswers\n                                    },\n                                    pointValue: 1,\n                                    whenRight: {\n                                        text: \"Great job! That's correct.\"\n                                    },\n                                    whenWrong: {\n                                        text: `Not quite. The correct answer was '${item.answer}'.`\n                                    }\n                                }\n                            }\n                        }\n                    },\n                    location: {\n                        index: questionRequests.length\n                    }\n                }\n            }\n        ]\n    });\n}\n\nreturn questionRequests;\n"
+      },
+      "id": "b254b863-b67a-42a8-a0c7-71107850ac45",
+      "name": "Prepare Questions for API call",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -960,
+        -80
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://forms.googleapis.com/v1/forms/{{ $('Create a Google Form').first().json.formId }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \t\"requests\": {{ JSON.stringify($json.data) }}\n}",
+        "options": {}
+      },
+      "id": "3ae9d049-d873-412b-9382-45ada411cd91",
+      "name": "Create MCQ Quizzes",
+      "type": "n8n-nodes-base.httpRequest",
+      "maxTries": 5,
+      "position": [
+        -512,
+        64
+      ],
+      "retryOnFail": true,
+      "typeVersion": 4.2,
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "lKBe0QJXvmoEfXFi",
+          "name": "Google account 2"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Something went wrong!",
+        "completionMessage": "Please check your Youtube URL OR the number of questions. ",
+        "options": {}
+      },
+      "id": "f88350be-d246-45d8-ae0c-46b138dfab41",
+      "name": "Error Output",
+      "type": "n8n-nodes-base.form",
+      "position": [
+        -288,
+        480
+      ],
+      "webhookId": "07b8f426-4177-47ed-bba6-27f968c6758f",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "redirect",
+        "redirectUrl": "={{ $('Create a Google Form').item.json.responderUri }}",
+        "options": {}
+      },
+      "id": "0d91d034-f25a-4447-a427-074a2ee50fd0",
+      "name": "Redirect to Google Form",
+      "type": "n8n-nodes-base.form",
+      "position": [
+        -512,
+        -176
+      ],
+      "webhookId": "5dc0fe0e-fd39-4751-94f5-744616313e37",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "=https://youtube-transcript3.p.rapidapi.com/api/transcript?videoId={{ $json[\"videoId\"] }}&lang=en&translate=false",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-host",
+              "value": "youtube-transcript3.p.rapidapi.com"
+            },
+            {
+              "name": "x-rapidapi-key",
+              "value": "d7435d1ff0msh416b41b99a0e003p1bb4dfjsn4e6465761dc4"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3008,
+        320
+      ],
+      "id": "2263bcb1-868b-42dd-8397-2ed3f7cb00ea",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const url = $json[\"Youtube URL\"];\nconst regExp = /^.*((youtu.be\\/)|(v\\/)|(u\\/\\w\\/)|(embed\\/)|(watch\\?))\\??v?=?([^#&?]*).*/;\nconst match = url.match(regExp);\nif (match && match[7].length === 11) {\n  $json[\"videoId\"] = match[7];\n} else {\n  throw new Error(\"Invalid YouTube URL or video ID\");\n}\nreturn $json;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3392,
+        272
+      ],
+      "id": "60ccd3c4-68d9-4f5a-9e2e-ffdd60ac64cd",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcriptArray = $json[\"transcript\"];\nlet fullTranscript = \"\";\n\n// Check if the transcript is a valid array and is not empty\nif (Array.isArray(transcriptArray) && transcriptArray.length > 0) {\n    fullTranscript = transcriptArray.map(item => item.text).join(\" \");\n} else {\n    // If the transcript is missing or invalid, stop the workflow here\n    throw new Error(\"Video transcript is missing or empty. Check the YouTube URL and video length.\");\n}\n\nreturn { json: { ...$json, transcriptText: fullTranscript } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2720,
+        304
+      ],
+      "id": "c3cf0aab-3b32-4699-9872-29afab1127aa",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "filter": {
+      "main": [
+        [
+          {
+            "node": "Set Prompt and Model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract JSON": {
+      "main": [
+        [
+          {
+            "node": "Create a Google Form",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Redirect to Google Form",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create MCQ Quizzes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input YouTube URL": {
+      "main": [
+        [
+          {
+            "node": "filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create MCQ Quizzes": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a Google Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare Questions for API call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Prompt and Model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request to Gemini": {
+      "main": [
+        [
+          {
+            "node": "If: Was an error detected?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract JSON",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract JSON",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Was an error detected?": {
+      "main": [
+        [
+          {
+            "node": "Set Fields: Define Outcome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Fields: Define Outcome": {
+      "main": [
+        [
+          {
+            "node": "Extract JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Questions for API call": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request to Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d9cff0bf-82eb-4c86-85d4-65f2f77f1a77",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "971c92a15ddfcef65b7ae22013192ff3a60ec1822c17b9a53b3f74f540865cc8"
+  },
+  "id": "nU5XBNOOYS9aoIrW",
+  "tags": []
+}
